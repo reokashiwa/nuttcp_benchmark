@@ -2,6 +2,14 @@
 
 require "open3"
 require "yaml"
+require 'optparse'
+
+opt = OptionParser.new
+OPTS = Hash.new
+OPTS[:configfile] = "config.yaml"
+opt.on('-c VAL', '--configfile VAL') {|v| OPTS[:configfile] = v}
+opt.parse!(ARGV)
+conf = YAML.load_file(OPTS[:configfile])
 
 def which(command)
   Open3.popen3("which "+command) do |stdin, stdout, stderr, status|
@@ -21,7 +29,7 @@ def detect_os
 end
 
 def make_commands
-  required_commands=["ip", "lscpu", "sudo", "sysctl", "ssh", "killall", "nuttcp"]
+  required_commands = ["ip", "lscpu", "sudo", "sysctl", "ssh", "killall", "nuttcp"]
   required_commands.push("cpufreq-set") if detect_os == "ubuntu"
   required_commands.push("cpupower") if detect_os == "redhat"
 
@@ -32,7 +40,7 @@ def make_commands
   return command
 end
 
-def show_link_mtu(commands, link)
+def link_mtu(commands, link)
   command = commands["ip"] + " link show " + link
   Open3.popen3() do |stdin, stdout, stderr, status|
     if status.value.to_i == 0
@@ -45,4 +53,7 @@ def show_link_mtu(commands, link)
 end
 
 commands = make_commands
-p show_link_mtu(commands, "eno5")
+p link_mtu(commands, conf["link"])
+conf["target"].each{|mtu|
+  
+}
