@@ -35,6 +35,7 @@ def make_commands
 
   commands = Hash.new
   required_commands.each{|command|
+    p command
     commands[command] = which(command)
   }
   return command
