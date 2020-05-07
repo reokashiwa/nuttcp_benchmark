@@ -1,5 +1,14 @@
-link: eno5
-target:
+target_link: eno5
+target_remotehost: 192.168.80.22
+target_mtu:
   - 1500
   - 5000
   - 9000
+required_commands:
+  - ip
+  - lscpu
+  - sudo
+  - sysctl
+  - ssh
+  - killall
+  - nuttcp
