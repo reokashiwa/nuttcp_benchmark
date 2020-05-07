@@ -33,7 +33,7 @@ def make_commands
   required_commands.push("cpufreq-set") if detect_os == "ubuntu"
   required_commands.push("cpupower") if detect_os == "redhat"
 
-  commands = Array.new
+  commands = Hash.new
   required_commands.each{|command|
     commands[command] = which(command)
   }
