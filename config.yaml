@@ -1,5 +1,6 @@
 target_link: eno5
 target_remotehost: 192.168.80.22
+target_link_remotehost: eno5
 target_mtu:
   - 1500
   - 5000
@@ -12,3 +13,11 @@ required_commands:
   - ssh
   - killall
   - nuttcp
+tcp_parameter:
+  rmem_max: 2147483647
+  wmem_max: 2147483647
+  tcp_rmem: 4096 87380 2147483647
+  tcp_wmem: 4096 65536 2147483647
+benchmark_parameter:
+  xmit_timeout: 10
+  window_size: 1m
