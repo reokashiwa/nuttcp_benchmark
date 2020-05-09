@@ -56,10 +56,15 @@ def detect_os
   return "debian" if File.exist?("/etc/debian_version")
 end
 
+def remote_file_exist?(ssh, remotehost, file)
+  return exec_command_remotehost(ssh, remotehost, "[ -e " + file + " ];echo \$?")
+end
+
 def detect_remote_os(commands, remotehost)
-  return "redhat" if exec_command_remotehost(commands["ssh"], remotehost, "[ -e /etc/redhat-release ];echo \$?")
-  return "ubuntu" if exec_command_remotehost(commands["ssh"], remotehost, "[ -e /etc/lsb-release ];echo \$?")
-  return "debian" if exec_command_remotehost(commands["ssh"], remotehost, "[ -e /etc/debian_version ];echo \$?")
+  ssh = commands["ssh"]
+  return "redhat" if remote_file_exist?(ssh, remotehost, "/etc/redhat-release")
+  return "ubuntu" if remote_file_exist?(ssh, remotehost, "/etc/lsb-release")
+  return "debian" if remote_file_exist?(ssh, remotehost, "/etc/debian_version")
 end
 
 def make_commands(remotehost)
@@ -90,7 +95,7 @@ def set_link_mtu(commands, link, mtu)
   return exec_command(command)
 end
 
-def set_link_mtu_remotehost(commands, link, mtu)
+def set_link_mtu_remotehost(commands, remotehost, link, mtu)
   command = [commands["sudo"], commands["ip"], "link set", link, "mtu", mtu].join(" ")
   return exec_command_remotehost(commands["ssh"], remotehost, command)
 end
@@ -110,10 +115,10 @@ def benchmark(commands, remotehost, parameter)
   return exec_command(command)
 end
 
-def set_cpufreq(link, commands, tcp_parameter, governer)
+def set_cpufreq(link, commands, governer)
   numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
-  if File.exist?(numanode_file)
-    File.open(numanode_file){|file|
+  if File.exist?(numa_node_file)
+    File.open(numa_node_file){|file|
       numa_node = file.gets
     }
   else
@@ -153,6 +158,49 @@ def set_cpufreq(link, commands, tcp_parameter, governer)
   end
 end
 
+def set_cpufreq_remote(commands, remotehost, link, governer)
+  numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
+
+  ssh = commands["ssh"]
+  if remote_file_exist?(ssh, remotehost, numa_node_file)
+    numa_node = exec_command_remotehost(ssh, remotehost, ["/bin/cat", numa_node_file].join(" "))
+  else
+    p "numa_node file does not exist."
+    exit(1)
+  end
+
+  exec_command_remotehost(ssh, remotehost, commands["lscpu_remote"]).each_line do |line|
+    if line.include?("NUMA node" + numa_node)
+      numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+      break
+    end
+  end
+
+  if numa_cpus_range != nil
+    numa_cpus_range.each_line do |line|
+      if line.include?("-")
+        for num in line.split("-")[0]..line.split("-")[1]
+          case detect_os
+          when "redhat" then
+            command = [commands["sudo_remote"], commands["cpupower_remote"], "-c", num,
+                       "frequency-set_remote", "-g", governer]
+          else
+            command = [commands["sudo_remote"], commands["cpufreq_set_remote"], "-c", num, 
+                       "-g", governer]
+          end
+          exec_command_remote(ssh, remotehost, command)
+        end
+      else
+        # if line does not include "-" == only number
+        # (to implement)
+      end
+    end
+  else
+    p "numa_cpu can not be found."
+    exit(1)
+  end
+end
+
 link = conf["target_link"]
 link_remotehost = conf["target_link_remotehost"]
 remotehost = conf["target_remotehost"]
@@ -166,14 +214,14 @@ conf["target_mtu"].each{|mtu|
   # NORMAL
   set_link_mtu(commands, ink, mtu)
   killall_nuttcp_remotehost(remotehost)
-  set_link_mtu_remotehost(remotehost, link_remotehost, mtu)
+  set_link_mtu_remotehost(commands, remotehost, link_remotehost, mtu)
   start_nuttcpd_remotehost(commands, remotehost)
   benchmark(commands, remotehost, benchmark_parameter) # repeat number...
 
   # CPUFREQ
-  set_cpufreq(commands, "performance") # to_implement
+  set_cpufreq(commands, link, "performance")
   killall_nuttcp_remotehost(remotehost)
-  set_cpufreq_remote(commands, remotehost, "performance") # to_implement
+  set_cpufreq_remote(commands, remotehost, link_remotehost) # to_implement
   start_nuttcpd_remotehost(commands, remotehost)
   benchmark(commands, remotehost, benchmark_parameter) 
 
