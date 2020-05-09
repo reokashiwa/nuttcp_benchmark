@@ -110,10 +110,54 @@ def benchmark(commands, remotehost, parameter)
   return exec_command(command)
 end
 
+def set_cpufreq(link, commands, tcp_parameter, governer)
+  numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
+  if File.exist?(numanode_file)
+    File.open(numanode_file){|file|
+      numa_node = file.gets
+    }
+  else
+    p "numa_node file does not exist."
+    exit(1)
+  end
+
+  exec_command(commands["lscpu"]).each_line do |line|
+    if line.include?("NUMA node" + numa_node)
+      numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+      break
+    end
+  end
+
+  if numa_cpus_range != nil
+    numa_cpus_range.each_line do |line|
+      if line.include?("-")
+        for num in line.split("-")[0]..line.split("-")[1]
+          case detect_os
+          when "redhat" then
+            command = [commands["sudo"], commands["cpupower"], "-c", num, "frequency-set",
+                       "-g", governer]
+          else
+            command = [commands["sudo"], commands["cpufreq_set"], "-c", num, 
+                       "-g", governer]
+          end
+          exec_command(command)
+        end
+      else
+        # if line does not include "-" == only number
+        # (to implement)
+      end
+    end
+  else
+    p "numa_cpu can not be found."
+    exit(1)
+  end
+end
+
 link = conf["target_link"]
 link_remotehost = conf["target_link_remotehost"]
 remotehost = conf["target_remotehost"]
-parameter = conf["benchmark_parameter"]
+benchmark_parameter = conf["benchmark_parameter"]
+tcp_parameter=conf["tcp_parameter"]
 commands = make_commands
 
 initial_mtu = link_mtu(commands, target_link)
@@ -124,14 +168,14 @@ conf["target_mtu"].each{|mtu|
   killall_nuttcp_remotehost(remotehost)
   set_link_mtu_remotehost(remotehost, link_remotehost, mtu)
   start_nuttcpd_remotehost(commands, remotehost)
-  benchmark(commands, remotehost, parameter) # repeat number...
+  benchmark(commands, remotehost, benchmark_parameter) # repeat number...
 
   # CPUFREQ
   set_cpufreq(commands, "performance") # to_implement
   killall_nuttcp_remotehost(remotehost)
   set_cpufreq_remote(commands, remotehost, "performance") # to_implement
   start_nuttcpd_remotehost(commands, remotehost)
-  benchmark(commands, remotehost, parameter) 
+  benchmark(commands, remotehost, benchmark_parameter) 
 
   # TCP BUFFERS
   set_tcp_buffers(tcp_parameter) # to_implement
