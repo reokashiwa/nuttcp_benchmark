@@ -5,15 +5,7 @@ target_mtu:
   - 1500
   - 5000
   - 9000
-required_commands:
-  - ip
-  - lscpu
-  - sudo
-  - sysctl
-  - ssh
-  - killall
-  - nuttcp
-tcp_parameter:
+tcp_parameters:
   rmem_max: 2147483647
   wmem_max: 2147483647
   tcp_rmem: 4096 87380 2147483647
