@@ -115,6 +115,12 @@ def benchmark(commands, remotehost, parameter)
   return exec_command(command)
 end
 
+def benchmark_with_window_size(commands, remotehost, parameter)
+  command = [commands["nuttcp"], "-w" + parameter["window_size"], 
+             "-xc 7/7 -T" + parameter["xmit_timeout"], remotehost].join(" ")
+  return exec_command(command)
+end
+
 def set_cpufreq(link, commands, governer)
   numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
   if File.exist?(numa_node_file)
@@ -201,6 +207,36 @@ def set_cpufreq_remote(commands, remotehost, link, governer)
   end
 end
 
+def set_tcp_buffers(commands, tcp_parameter)
+  command = [commands["sudo"], commands["sysctl"], "-w",
+             "net.core.rmem_max=" + tcp_parameter["rmem_max"]].join(" ")
+  exec_command(command)
+  command = [commands["sudo"], commands["sysctl"], "-w",
+             "net.core.wmem_max=" + tcp_parameter["wmem_max"]].join(" ")
+  exec_command(command)
+  command = [commands["sudo"], commands["sysctl"], "-w",
+             'net.core.ipv4.tcp_rmem="' + tcp_parameter["tcp_rmem"] + '"'].join(" ")
+  exec_command(command)
+  command = [commands["sudo"], commands["sysctl"], "-w",
+             'net.core.ipv4.tcp_wmem="' + tcp_parameter["tcp_wmem"] + '"'].join(" ")
+  exec_command(command)
+end
+
+def set_tcp_buffers_remote(commands, remotehost, tcp_parameter)
+  command = [commands["sudo_remote"], commands["sysctl_remote"], "-w",
+             "net.core.rmem_max=" + tcp_parameter["rmem_max"]].join(" ")
+  exec_command_remote(commands["ssh"], remotehost, command)
+  command = [commands["sudo_remote"], commands["sysctl_remote"], "-w",
+             "net.core.wmem_max=" + tcp_parameter["wmem_max"]].join(" ")
+  exec_command_remote(commands["ssh"], remotehost, command)
+  command = [commands["sudo_remote"], commands["sysctl_remote"], "-w",
+             'net.core.ipv4.tcp_rmem="' + tcp_parameter["tcp_rmem"] + '"'].join(" ")
+  exec_command_remote(commands["ssh"], remotehost, command)
+  command = [commands["sudo_remote"], commands["sysctl_remote"], "-w",
+             'net.core.ipv4.tcp_wmem="' + tcp_parameter["tcp_wmem"] + '"'].join(" ")
+  exec_command_remote(commands["ssh"], remotehost, command)
+end
+
 link = conf["target_link"]
 link_remotehost = conf["target_link_remotehost"]
 remotehost = conf["target_remotehost"]
@@ -221,16 +257,16 @@ conf["target_mtu"].each{|mtu|
   # CPUFREQ
   set_cpufreq(commands, link, "performance")
   killall_nuttcp_remotehost(remotehost)
-  set_cpufreq_remote(commands, remotehost, link_remotehost) # to_implement
+  set_cpufreq_remote(commands, remotehost, link_remotehost)
   start_nuttcpd_remotehost(commands, remotehost)
   benchmark(commands, remotehost, benchmark_parameter) 
 
   # TCP BUFFERS
-  set_tcp_buffers(tcp_parameter) # to_implement
+  set_tcp_buffers(commands, tcp_parameter)
   killall_nuttcp_remotehost(remotehost)
-  set_tcp_buffers_remote(commands, remotehost, tcp_parameter) # to_implement
+  set_tcp_buffers_remote(commands, remotehost, tcp_parameter)
   start_nuttcpd_remotehost(commands, remotehost)
-  benchmark_window_size(commands, remotehost, tcp_parameter) # to_implement
+  benchmark_with_window_size(commands, remotehost, tcp_parameter) # to_implement
 
   # reset
   set_cpufreq(commands, "powersave")
