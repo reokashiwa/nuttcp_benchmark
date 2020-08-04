@@ -39,8 +39,8 @@ class Benchmark
     return exec_command(command)
   end
   
-  def remote_file_exist?(file)
-    return exec_command_remotehost(@commands["ssh"], @remotehost, "[ -e " + file + " ];echo \$?")
+  def remote_file_exist?(filename)
+    return exec_command_remotehost("[ -e " + filename + " ];echo \$?")
   end
 
   def detect_os
