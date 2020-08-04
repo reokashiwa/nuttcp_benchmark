@@ -11,7 +11,7 @@ OPTS = Hash.new
 OPTS[:configfile] = "config.yaml"
 opt.on('-c VAL', '--configfile VAL') {|v| OPTS[:configfile] = v}
 opt.parse!(ARGV)
-conf = YAML.load_file(OPTS[:def])
+conf = YAML.load_file(OPTS[:configfile])
 
 class Benchmark
   def initialize(conf)
