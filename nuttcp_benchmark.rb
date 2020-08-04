@@ -408,4 +408,4 @@ end
 # set_link_mtu_remotehost(remotehost, link_remotehost, initial_mtu)
 # killall_nuttcp_remotehost(remotehost)
 
-benchmark = Benchmark(YAML.load_file(OPTS[:configfile]))
+benchmark = Benchmark.new(YAML.load_file(OPTS[:configfile]))
