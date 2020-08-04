@@ -11,7 +11,7 @@ OPTS = Hash.new
 OPTS[:configfile] = "config.yaml"
 opt.on('-c VAL', '--configfile VAL') {|v| OPTS[:configfile] = v}
 opt.parse!(ARGV)
-conf = YAML.load_file(OPTS[:configfile])
+# conf = YAML.load_file(OPTS[:configfile])
 
 class Benchmark
   def initialize(conf)
@@ -407,3 +407,5 @@ end
 # set_link_mtu(commands, link, initial_mtu)
 # set_link_mtu_remotehost(remotehost, link_remotehost, initial_mtu)
 # killall_nuttcp_remotehost(remotehost)
+
+benchmark = Benchmark(YAML.load_file(OPTS[:configfile]))
