@@ -1,5 +1,6 @@
-#!/Users/reo/.rbenv/shims/ruby
-# coding: utf-8-emacs
+#!/bin/sh
+exec ruby -x "$0" "$@"
+#!ruby
 
 require "open3"
 require "yaml"
