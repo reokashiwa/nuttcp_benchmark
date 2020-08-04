@@ -11,7 +11,7 @@ OPTS = Hash.new
 OPTS[:configfile] = "config.yaml"
 opt.on('-c VAL', '--configfile VAL') {|v| OPTS[:configfile] = v}
 opt.parse!(ARGV)
-# conf = YAML.load_file(OPTS[:configfile])
+conf = YAML.load_file(OPTS[:configfile])
 
 class Benchmark
   def initialize(conf)
@@ -20,7 +20,7 @@ class Benchmark
     @remotehost = conf["target_remotehost"]
     @benchmark_parameter = conf["benchmark_parameter"]
     @tcp_parameters=conf["tcp_parameters"]
-    @commands = make_commands(@remotehost)
+    @commands = make_commands
   end
 
   def exec_command(command)
@@ -78,6 +78,7 @@ class Benchmark
   end
   
   def make_commands
+    commands = Hash.new
     required_commands = ["ip", "lscpu", "sudo", "sysctl", "killall", "nuttcp"]
     required_remote_commands = Marshal.load(Marshal.dump(required_commands))
 
@@ -87,7 +88,7 @@ class Benchmark
       required_commands.push("cpufreq-set")
     end
 
-    @commands["ssh"] = which("ssh")
+    commands["ssh"] = which("ssh")
 
     if detect_remote_os == "redhat"
       required_remote_commands.push("cpupower")
@@ -96,12 +97,14 @@ class Benchmark
     end
     
     required_commands.each{|command|
-      @commands[command] = which(command)
+      commands[command] = which(command)
     }
 
     required_remote_commands.each{|command|
-      @commands[command + "_remote"] = which_remotehost(commands["ssh"], command, @remotehost)
+      commands[command + "_remote"] = which_remotehost(commands["ssh"], command, @remotehost)
     }
+
+    return commands
   end
 end
 
@@ -408,4 +411,4 @@ end
 # set_link_mtu_remotehost(remotehost, link_remotehost, initial_mtu)
 # killall_nuttcp_remotehost(remotehost)
 
-benchmark = Benchmark.new(YAML.load_file(OPTS[:configfile]))
+benchmark = Benchmark.new(conf)
