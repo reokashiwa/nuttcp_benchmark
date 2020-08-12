@@ -122,7 +122,7 @@ class Benchmark
 
   def show_link_mtu_remotehost
     command = [@commands["ip"], "link show", @link_remotehost].join(" ")
-    return exec_command_remotehost(@commands["ssh"], @remotehost, command).gets.strip.split(' ')[5]
+    return exec_command_remotehost(command).gets.strip.split(' ')[5]
   end
   
 end
