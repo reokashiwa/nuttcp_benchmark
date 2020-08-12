@@ -117,12 +117,12 @@ class Benchmark
 
   def show_link_mtu
     command = [@commands["ip"], "link show", @link].join(" ")
-    return exec_command(command).gets.strip.split(' ')[5]
+    return exec_command(command).gets.strip.split(' ')[4]
   end
 
   def show_link_mtu_remotehost
     command = [@commands["ip"], "link show", @link_remotehost].join(" ")
-    return exec_command_remotehost(command).gets.strip.split(' ')[5]
+    return exec_command_remotehost(command).gets.strip.split(' ')[4]
   end
   
 end
