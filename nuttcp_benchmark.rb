@@ -26,7 +26,7 @@ class Benchmark
   def exec_command(command)
     Open3.popen3(command) do |stdin, stdout, stderr, status|
       if status.value.to_i == 0
-        return stdout
+        return stdout.dup
       else
         p stderr
         exit(1)
@@ -34,13 +34,20 @@ class Benchmark
     end
   end
 
-  def exec_command_remotehost(command)
-    command = [@commands["ssh"], @remotehost, command].join(" ")
+  def exec_command_remotehost(remotehost_command)
+    command = [which("ssh"), @remotehost, remotehost_command].join(" ")
     return exec_command(command)
   end
   
   def remote_file_exist?(filename)
-    return exec_command_remotehost("[ -e " + filename + " ];echo \$?")
+    result = exec_command_remotehost('"[ -e ' + filename + ' ];echo \$?"')
+    result.each do |line|
+      if line.strip == "1"
+        return false
+      else
+        return true
+      end
+    end
   end
 
   def detect_os
@@ -50,7 +57,7 @@ class Benchmark
   end
 
   def detect_remote_os
-    return "redhat" if remote_file_exist?("/etc/redhat-release")
+    return "redhat" if remote_file_exist?("/etc/redhat-release") 
     return "ubuntu" if remote_file_exist?("/etc/lsb-release")
     return "debian" if remote_file_exist?("/etc/debian_version")
   end
@@ -60,18 +67,16 @@ class Benchmark
       if status.value.to_i == 0
         return stdout.gets.strip
       else
-        p command + " is not installed."
         exit(1)
       end
     end
   end
 
   def which_remotehost(command)
-    Open3.popen3([which("ssh"), @remotehost, "which", command].join(" ")) do |stdin, stdout, stderr, status|
+    Open3.popen3([which("ssh"), @remotehost, "/bin/bash which", command].join(" ")) do |stdin, stdout, stderr, status|
       if status.value.to_i == 0
         return stdout.gets.strip
       else
-        p command + " is not installed."
         exit(1)
       end
     end
@@ -98,12 +103,15 @@ class Benchmark
     
     required_commands.each{|command|
       commands[command] = which(command)
+      print "command " + command + " is found in " + which(command) + "\n"
     }
 
     required_remote_commands.each{|command|
-      commands[command + "_remote"] = which_remotehost(commands["ssh"], command, @remotehost)
+      commands[command + "_remote"] = which_remotehost(command)
+      print "command " + command + " is found in " + which(command) + " in " + @remotehost +"\n"
     }
 
+    p commands
     return commands
   end
 end
