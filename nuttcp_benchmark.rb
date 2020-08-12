@@ -117,7 +117,7 @@ class Benchmark
 
   def show_link_mtu
     command = [@commands["ip"], "link show", @link].join(" ")
-    link exec_command(command).gets.strip.split(' ')[5]
+    return exec_command(command).gets.strip.split(' ')[5]
   end
 
   def show_link_mtu_remotehost
@@ -356,4 +356,4 @@ end
 
 benchmark = Benchmark.new(conf)
 p benchmark.show_link_mtu
-p benchmark.show_link_mtu
+p benchmark.show_link_mtu_remotehost
