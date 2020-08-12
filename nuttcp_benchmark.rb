@@ -114,94 +114,29 @@ class Benchmark
     p commands
     return commands
   end
+
+  def show_link_mtu
+    command = [@commands["ip"], "link show", @link].join(" ")
+    link exec_command(command).gets.strip.split(' ')[5]
+  end
+
+  def show_link_mtu_remotehost
+    command = [@commands["ip"], "link show", @link_remotehost].join(" ")
+    return exec_command_remotehost(@commands["ssh"], @remotehost, command).gets.strip.split(' ')[5]
+  end
+  
 end
 
-# def which(command)
-#   Open3.popen3(["which", command].join(" ")) do |stdin, stdout, stderr, status|
-#     if status.value.to_i == 0
-#       return stdout.gets.strip
-#     else
-#       p command + " is not installed."
-#       exit(1)
-#     end
-#   end
+
+# def show_link_mtu(commands, link)
+#   command = [commands["ip"], "link show", link].join(" ")
+#   link exec_command(command).gets.strip.split(' ')[5]
 # end
 
-# def which_remotehost(ssh, remotehost, command)
-#   Open3.popen3([ssh, remotehost, "which", command].join(" ")) do
-#                  |stdin, stdout, stderr, status|
-#                  if status.value.to_i == 0
-#                    return stdout.gets.strip
-#                  else
-#                    p command + " is not installed."
-#                    exit(1)
-#                  end
-#                end
+# def show_link_mtu_remotehost(commands, link, remotehost)
+#   command = [commands["ip"], "link show", link].join(" ")
+#   return exec_command_remotehost(commands["ssh"], remotehost, command).gets.strip.split(' ')[5]
 # end
-
-# def exec_command(command)
-#   Open3.popen3(command) do |stdin, stdout, stderr, status|
-#     if status.value.to_i == 0
-#       return stdout
-#     else
-#       p stderr
-#       exit(1)
-#     end
-#   end
-# end
-
-# def exec_command_remotehost(ssh, remotehost, command)
-#   command = [ssh, remotehost, command].join(" ")
-#   return exec_command(command)
-# end
-
-# def detect_os
-#   return "redhat" if File.exist?("/etc/redhat-release")
-#   return "ubuntu" if File.exist?("/etc/lsb-release")
-#   return "debian" if File.exist?("/etc/debian_version")
-# end
-
-# def remote_file_exist?(ssh, remotehost, file)
-#   return exec_command_remotehost(ssh, remotehost, "[ -e " + file + " ];echo \$?")
-# end
-
-# def detect_remote_os(commands, remotehost)
-#   ssh = commands["ssh"]
-#   return "redhat" if remote_file_exist?(ssh, remotehost, "/etc/redhat-release")
-#   return "ubuntu" if remote_file_exist?(ssh, remotehost, "/etc/lsb-release")
-#   return "debian" if remote_file_exist?(ssh, remotehost, "/etc/debian_version")
-# end
-
-# def make_commands(remotehost)
-#   required_commands = ["ip", "lscpu", "sudo", "sysctl", "killall", "nuttcp"]
-
-#   if detect_os == "ubuntu"
-#     if detect_os == "redhat"
-#       required_commands.push("cpupower")
-#     else
-#       required_commands.push("cpufreq-set")
-#     end
-
-#     commands = Hash.new
-#     commands["ssh"] = which("ssh")
-    
-#     required_commands.each{|command|
-#       commands[command] = which(command)
-#       commands[command + "_remote"] = which_remotehost(commands["ssh"], command, remotehost)
-#     }
-#     return commands
-#   end
-# end
-
-def show_link_mtu(commands, link)
-  command = [commands["ip"], "link show", link].join(" ")
-  link exec_command(command).gets.strip.split(' ')[5]
-end
-
-def show_link_mtu_remotehost(commands, link, remotehost)
-  command = [commands["ip"], "link show", link].join(" ")
-  return exec_command_remotehost(commands["ssh"], remotehost, command).gets.strip.split(' ')[5]
-end
 
 def set_link_mtu(commands, link, mtu)
   command = [commands["sudo"], commands["ip"], "link set", link, "mtu", mtu].join(" ")
@@ -420,3 +355,5 @@ end
 # killall_nuttcp_remotehost(remotehost)
 
 benchmark = Benchmark.new(conf)
+p benchmark.show_link_mtu
+p benchmark.show_link_mtu
