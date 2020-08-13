@@ -170,6 +170,7 @@ class Benchmark
       }
     }
     return parameters
+  end
 end
 
 
