@@ -153,7 +153,7 @@ class Benchmark
     @tcp_parameter_combinations.each {|key, value|
       result = exec_command([@commands["sysctl"], "-n", value].join(" "))
       result.each{|line|
-        parameters[key] = line.strip.gsub('\t', ' ')
+        parameters[key] = line.strip.gsub(/\t/, ' ')
         next
       }
     }
@@ -165,26 +165,27 @@ class Benchmark
     @tcp_parameter_combinations.each {|key, value|
       result = exec_command_remotehost([@commands["sysctl"], "-n", value].join(" "))
       result.each{|line|
-        parameters[key] = line.strip.gsub('\t', ' ')
+        parameters[key] = line.strip.gsub(/\t/, ' ')
         next
       }
     }
     return parameters
   end
 
-  def set_tcp_buffers(tcp_parameters)
+  def set_tcp_parameters(tcp_parameters)
     @tcp_parameter_combinations.each {|key, value|
       command = [@commands["sudo"], @commands["sysctl"], "-w",
-                 value + tcp_parameters["rmem_max"]].join(" ")
+                 value + "=" + tcp_parameters["rmem_max"]].join(" ")
       exec_command(command)
     }
   end
 
-  def set_tcp_buffers_remote(tcp_parameters)
+  def set_tcp_parameters_remotehost(tcp_parameters)
     @tcp_parameter_combinations.each {|key, value|
       command = [@commands["sudo"], @commands["sysctl"], "-w",
-                 value + tcp_parameters["rmem_max"]].join(" ")
+                 value + "=" + tcp_parameters["rmem_max"]].join(" ")
       exec_command_remotehost(command)
+    }
   end
 end
 
