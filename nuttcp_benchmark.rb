@@ -216,12 +216,15 @@ class Benchmark
     options = String.new
     option_combinations.each{|key, value|
       if parameters.has_key?(key)
-        options = options + value + parameters(key) + " "
+        options = options + value + parameters[key] + " "
       end
     }
     
-    command = [commands["nuttcp"], options, remotehost].join(" ")
-    return exec_command(command)
+    command = [@commands["nuttcp"], options, @remotehost].join(" ")
+    result = exec_command(command)
+    result.each{|line|
+      return line.strip.split(/\s+/)[6] 
+    }
   end
 end
 
