@@ -163,7 +163,7 @@ class Benchmark
     combinations = {"rmem_max" => "net.core.rmem_max", "wmem_max" => "net.core.wmem_max", 
                     "tcp_rmem" => "net.ipv4.tcp_rmem", "tcp_wmem" => "net.ipv4.tcp_wmem"}
     combinations.each {|key, value|
-      result = exec_command_remote([@commands["sysctl"], "-n", value].join(" "))
+      result = exec_command_remotehost([@commands["sysctl"], "-n", value].join(" "))
       result.each{|line|
         parameters[key] = line.strip
         next
