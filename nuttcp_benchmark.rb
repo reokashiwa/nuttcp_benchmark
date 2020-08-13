@@ -384,4 +384,5 @@ p original_tcp_parameters_remotehost
 # p benchmark.show_tcp_parameters
 # p benchmark.show_tcp_parameters_remotehost
 
-benchmark.start_nuttcpd_remotehost
+# benchmark.start_nuttcpd_remotehost
+benchmark.killall_nuttcpd_remotehost
