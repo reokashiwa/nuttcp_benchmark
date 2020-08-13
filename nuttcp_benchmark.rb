@@ -21,6 +21,11 @@ class Benchmark
     @benchmark_parameter = conf["benchmark_parameter"]
     @tcp_parameters=conf["tcp_parameters"]
     @commands = make_commands
+
+    print "@link: " + @link + "\n"
+    print "@link_remotehost: " + @link_remotehost + "\n"
+    print "@remotehost: " + @remotehost + "\n"
+    print "@commands: " + @commands + "\n"
   end
 
   def exec_command(command)
@@ -28,7 +33,7 @@ class Benchmark
       if status.value.to_i == 0
         return stdout.dup
       else
-        p stderr
+        stderr.each do |line| p line end
         exit(1)
       end
     end
@@ -67,6 +72,7 @@ class Benchmark
       if status.value.to_i == 0
         return stdout.gets.strip
       else
+        stderr.each do |line| p line end
         exit(1)
       end
     end
@@ -77,6 +83,7 @@ class Benchmark
       if status.value.to_i == 0
         return stdout.gets.strip
       else
+        stderr.each do |line| p line end
         exit(1)
       end
     end
@@ -103,12 +110,12 @@ class Benchmark
     
     required_commands.each{|command|
       commands[command] = which(command)
-      print "command " + command + " is found in " + which(command) + "\n"
+      # print "command " + command + " is found in " + which(command) + "\n"
     }
 
     required_remote_commands.each{|command|
       commands[command + "_remote"] = which_remotehost(command)
-      print "command " + command + " is found in " + which(command) + " in " + @remotehost +"\n"
+      # print "command " + command + " is found in " + which(command) + " in " + @remotehost +"\n"
     }
 
     return commands
