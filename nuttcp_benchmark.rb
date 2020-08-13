@@ -25,7 +25,8 @@ class Benchmark
     print "@link: " + @link + "\n"
     print "@link_remotehost: " + @link_remotehost + "\n"
     print "@remotehost: " + @remotehost + "\n"
-    print "@commands: " + @commands + "\n"
+    print "@commands: "
+    p @commands
   end
 
   def exec_command(command)
@@ -110,12 +111,10 @@ class Benchmark
     
     required_commands.each{|command|
       commands[command] = which(command)
-      # print "command " + command + " is found in " + which(command) + "\n"
     }
 
     required_remote_commands.each{|command|
       commands[command + "_remote"] = which_remotehost(command)
-      # print "command " + command + " is found in " + which(command) + " in " + @remotehost +"\n"
     }
 
     return commands
@@ -133,40 +132,59 @@ class Benchmark
 
   def set_link_mtu(mtu)
     command = [@commands["sudo"], @commands["ip"], "link set", @link, "mtu", mtu].join(" ")
-    return exec_command(command)
+    result = exec_command(command)
+    return result
   end
 
   def set_link_mtu_remotehost(mtu)
     command = [@commands["sudo"], @commands["ip"], "link set", @link_remotehost, "mtu", mtu].join(" ")
-    return exec_command_remotehost(command)
+    result = exec_command_remotehost(command)
+    return result
   end
-  
+
+  def show_tcp_parameters(commands)
+    parameters = Hash.new
+    parameters["rmem_max"] = exec_command([commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
+    parameters["wmem_max"] = exec_command([commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
+    parameters["tcp_rmem"] = exec_command([commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
+    parameters["tcp_wmem"] = exec_command([commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
+    return parameters
+  end
+
+  def show_tcp_parameters_remotehost(commands, remotehost)
+    parameters = Hash.new
+    parameters["rmem_max"] = exec_command_remotehost([commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
+    parameters["wmem_max"] = exec_command_remotehost([commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
+    parameters["tcp_rmem"] = exec_command_remotehost([commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
+    parameters["tcp_wmem"] = exec_command_remotehost([commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
+    return parameters
+  end
 end
 
 
 
-def show_tcp_parameters(commands)
-  parameters = Hash.new
-  parameters["rmem_max"] = exec_command([commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
-  parameters["wmem_max"] = exec_command([commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
-  parameters["tcp_rmem"] = exec_command([commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
-  parameters["tcp_wmem"] = exec_command([commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
-  return parameters
-end
+# def show_tcp_parameters(commands)
+#   parameters = Hash.new
+#   parameters["rmem_max"] = exec_command([commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
+#   parameters["wmem_max"] = exec_command([commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
+#   parameters["tcp_rmem"] = exec_command([commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
+#   parameters["tcp_wmem"] = exec_command([commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
+#   return parameters
+# end
 
-def show_tcp_parameters_remotehost(commands, remotehost)
-  parameters = Hash.new
-  ssh = commands["ssh"]
-  parameters["rmem_max"] = exec_command_remotehost(
-    ssh, remotehost, [commands["sysctl_remote"], "-n", "net.core.rmem_max"].join(" "))
-  parameters["wmem_max"] = exec_command_remotehost(
-    ssh, remotehost, [commands["sysctl_remote"], "-n", "net.core.wmem_max"].join(" "))
-  parameters["tcp_rmem"] = exec_command_remotehost(
-    ssh, remotehost, [commands["sysctl_remote"], "-n", "net.ipv4.tcp_rmem"].join(" "))
-  parameters["tcp_wmem"] = exec_command_remotehost(
-    ssh, remotehost, [commands["sysctl_remote"], "-n", "net.ipv4.tcp_wmem"].join(" "))
-  return parameters
-end
+# def show_tcp_parameters_remotehost(commands, remotehost)
+#   parameters = Hash.new
+#   ssh = commands["ssh"]
+#   parameters["rmem_max"] = exec_command_remotehost(
+#     ssh, remotehost, [commands["sysctl_remote"], "-n", "net.core.rmem_max"].join(" "))
+#   parameters["wmem_max"] = exec_command_remotehost(
+#     ssh, remotehost, [commands["sysctl_remote"], "-n", "net.core.wmem_max"].join(" "))
+#   parameters["tcp_rmem"] = exec_command_remotehost(
+#     ssh, remotehost, [commands["sysctl_remote"], "-n", "net.ipv4.tcp_rmem"].join(" "))
+#   parameters["tcp_wmem"] = exec_command_remotehost(
+#     ssh, remotehost, [commands["sysctl_remote"], "-n", "net.ipv4.tcp_wmem"].join(" "))
+#   return parameters
+# end
 
 def killall_nuttcp_remotehost(commands, remotehost)
   command = [commands["killall_remote"], commands["nuttcp_remote"]].join(" ")
@@ -370,3 +388,6 @@ benchmark.set_link_mtu_remotehost(mtu_remotehost)
 
 p benchmark.show_link_mtu
 p benchmark.show_link_mtu_remotehost
+
+p benchmark.show_tcp_parameters
+p benchmark.show_tcp_parameters_remotehost
