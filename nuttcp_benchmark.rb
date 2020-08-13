@@ -187,17 +187,28 @@ class Benchmark
       exec_command_remotehost(command)
     }
   end
+
+  def killall_nuttcpd_remotehost
+    command = [@commands["killall_remote"], @commands["nuttcp_remote"]].join(" ")
+    return exec_command_remotehost(command)
+  end
+
+  def start_nuttcpd_remotehost
+    command = [@commands["nuttcp_remote"], "-S"].join(" ")
+    return exec_command_remotehost(command)
+  end
+  
 end
 
-def killall_nuttcp_remotehost(commands, remotehost)
-  command = [commands["killall_remote"], commands["nuttcp_remote"]].join(" ")
-  return exec_command_remotehost(commands["ssh"], remotehost, command)
-end
+# def killall_nuttcp_remotehost(commands, remotehost)
+#   command = [commands["killall_remote"], commands["nuttcp_remote"]].join(" ")
+#   return exec_command_remotehost(commands["ssh"], remotehost, command)
+# end
 
-def start_nuttcpd_remotehost(commands, remotehost)
-  command = [commands["nuttcp_remote"], "-S"].join(" ")
-  return exec_command_remotehost(commands["ssh"], remotehost, command)
-end
+# def start_nuttcpd_remotehost(commands, remotehost)
+#   command = [commands["nuttcp_remote"], "-S"].join(" ")
+#   return exec_command_remotehost(commands["ssh"], remotehost, command)
+# end
 
 def benchmark(commands, remotehost, parameter)
   command = [commands["nuttcp"], "-xc 7/7 -T" + parameter["xmit_timeout"], remotehost].join(" ")
@@ -296,48 +307,6 @@ def set_cpufreq_remote(commands, remotehost, link, governer)
   end
 end
 
-# def set_tcp_buffers(commands, tcp_parameters)
-#   command = [commands["sudo"], commands["sysctl"], "-w",
-#              "net.core.rmem_max=" + tcp_parameters["rmem_max"]].join(" ")
-#   exec_command(command)
-#   command = [commands["sudo"], commands["sysctl"], "-w",
-#              "net.core.wmem_max=" + tcp_parameters["wmem_max"]].join(" ")
-#   exec_command(command)
-#   command = [commands["sudo"], commands["sysctl"], "-w",
-#              'net.core.ipv4.tcp_rmem="' + tcp_parameters["tcp_rmem"] + '"'].join(" ")
-#   exec_command(command)
-#   command = [commands["sudo"], commands["sysctl"], "-w",
-#              'net.core.ipv4.tcp_wmem="' + tcp_parameters["tcp_wmem"] + '"'].join(" ")
-#   exec_command(command)
-# end
-
-# def set_tcp_buffers_remote(commands, remotehost, tcp_parameters)
-#   command = [commands["sudo_remote"], commands["sysctl_remote"], "-w",
-#              "net.core.rmem_max=" + tcp_parameters["rmem_max"]].join(" ")
-#   exec_command_remote(commands["ssh"], remotehost, command)
-#   command = [commands["sudo_remote"], commands["sysctl_remote"], "-w",
-#              "net.core.wmem_max=" + tcp_parameters["wmem_max"]].join(" ")
-#   exec_command_remote(commands["ssh"], remotehost, command)
-#   command = [commands["sudo_remote"], commands["sysctl_remote"], "-w",
-#              'net.core.ipv4.tcp_rmem="' + tcp_parameters["tcp_rmem"] + '"'].join(" ")
-#   exec_command_remote(commands["ssh"], remotehost, command)
-#   command = [commands["sudo_remote"], commands["sysctl_remote"], "-w",
-#              'net.core.ipv4.tcp_wmem="' + tcp_parameters["tcp_wmem"] + '"'].join(" ")
-#   exec_command_remote(commands["ssh"], remotehost, command)
-# end
-
-# link = conf["target_link"]
-# link_remotehost = conf["target_link_remotehost"]
-# remotehost = conf["target_remotehost"]
-# benchmark_parameter = conf["benchmark_parameter"]
-# tcp_parameters=conf["tcp_parameters"]
-
-# commands = make_commands(conf["required_commands"], remotehost)
-
-# initial_mtu = show_link_mtu(commands, target_link)
-# initial_tcp_parameters = show_initial_tcp_parameters(commands)
-# initial_tcp_parameters_remotehost = show_initial_tcp_parameters_remotehost(commands, remotehost)
-
 # conf["target_mtu"].each{|mtu|
 #   # NORMAL
 #   set_link_mtu(commands, ink, mtu)
@@ -398,19 +367,21 @@ original_tcp_parameters_remotehost = benchmark.show_tcp_parameters_remotehost
 p original_tcp_parameters
 p original_tcp_parameters_remotehost
 
-sample_parameters = {"rmem_max" => "425984", 
-                     "wmem_max" => "425984", 
-                     "tcp_rmem" => "8192 242144 12582912", 
-                     "tcp_wmem" => "8192 32768 8388608"}
+# sample_parameters = {"rmem_max" => "425984", 
+#                      "wmem_max" => "425984", 
+#                      "tcp_rmem" => "8192 242144 12582912", 
+#                      "tcp_wmem" => "8192 32768 8388608"}
 
-benchmark.set_tcp_parameters(sample_parameters)
-benchmark.set_tcp_parameters_remotehost(sample_parameters)
+# benchmark.set_tcp_parameters(sample_parameters)
+# benchmark.set_tcp_parameters_remotehost(sample_parameters)
 
-p benchmark.show_tcp_parameters
-p benchmark.show_tcp_parameters_remotehost
+# p benchmark.show_tcp_parameters
+# p benchmark.show_tcp_parameters_remotehost
 
-benchmark.set_tcp_parameters(original_tcp_parameters)
-benchmark.set_tcp_parameters_remotehost(original_tcp_parameters_remotehost)
+# benchmark.set_tcp_parameters(original_tcp_parameters)
+# benchmark.set_tcp_parameters_remotehost(original_tcp_parameters_remotehost)
 
-p benchmark.show_tcp_parameters
-p benchmark.show_tcp_parameters_remotehost
+# p benchmark.show_tcp_parameters
+# p benchmark.show_tcp_parameters_remotehost
+
+benchmark.start_nuttcpd_remotehost
