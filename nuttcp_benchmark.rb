@@ -200,23 +200,23 @@ class Benchmark
 
   def exec(parameters)
     option_combinations = {
-      "dscp_value" => "-c",
-      "buffer_len" => "-l",
-      "num_bufs" => "-n",
-      "window_size" => "-w",
-      "server_window" => "-ws",
-      "braindead" => "-wb",
-      "data_port" => "-p",
-      "control_port" => "-P",
-      "num_streams" => "-N",
-      "xmit_rate_limit" => "-R",
-      "xmit_timeout" => "-T",
-      "cpu_affinity" => "-x"}
+      "dscp_value" => "c",
+      "buffer_len" => "l",
+      "num_bufs" => "n",
+      "window_size" => "w",
+      "server_window" => "ws",
+      "braindead" => "wb",
+      "data_port" => "p",
+      "control_port" => "P",
+      "num_streams" => "N",
+      "xmit_rate_limit" => "R",
+      "xmit_timeout" => "T",
+      "cpu_affinity" => "x"}
 
     options = String.new
     option_combinations.each{|key, value|
       if parameters.has_key?(key)
-        options = options + value + parameters[key] + " "
+        options = options + "-" + value + parameters[key] + " "
       end
     }
     
@@ -394,6 +394,6 @@ p original_tcp_parameters_remotehost
 benchmark.killall_nuttcpd_remotehost
 benchmark.start_nuttcpd_remotehost
 
-nuttcp_parameter = {"xmit_timeout" => "1"
-}
+nuttcp_parameter = {"xmit_timeout" => "1",
+                    "window_size" => "1m"}
 p benchmark.exec(nuttcp_parameter)
