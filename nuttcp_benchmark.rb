@@ -133,30 +133,32 @@ class Benchmark
   def set_link_mtu(mtu)
     command = [@commands["sudo"], @commands["ip"], "link set", @link, "mtu", mtu].join(" ")
     result = exec_command(command)
+    sleep(1)
     return result
   end
 
   def set_link_mtu_remotehost(mtu)
     command = [@commands["sudo"], @commands["ip"], "link set", @link_remotehost, "mtu", mtu].join(" ")
     result = exec_command_remotehost(command)
+    sleep(1)
     return result
   end
 
-  def show_tcp_parameters(commands)
+  def show_tcp_parameters
     parameters = Hash.new
-    parameters["rmem_max"] = exec_command([commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
-    parameters["wmem_max"] = exec_command([commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
-    parameters["tcp_rmem"] = exec_command([commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
-    parameters["tcp_wmem"] = exec_command([commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
+    parameters["rmem_max"] = exec_command([@commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
+    parameters["wmem_max"] = exec_command([@commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
+    parameters["tcp_rmem"] = exec_command([@commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
+    parameters["tcp_wmem"] = exec_command([@commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
     return parameters
   end
 
-  def show_tcp_parameters_remotehost(commands, remotehost)
+  def show_tcp_parameters_remotehost
     parameters = Hash.new
-    parameters["rmem_max"] = exec_command_remotehost([commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
-    parameters["wmem_max"] = exec_command_remotehost([commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
-    parameters["tcp_rmem"] = exec_command_remotehost([commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
-    parameters["tcp_wmem"] = exec_command_remotehost([commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
+    parameters["rmem_max"] = exec_command_remotehost([@commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
+    parameters["wmem_max"] = exec_command_remotehost([@commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
+    parameters["tcp_rmem"] = exec_command_remotehost([@commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
+    parameters["tcp_wmem"] = exec_command_remotehost([@commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
     return parameters
   end
 end
