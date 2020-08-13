@@ -146,27 +146,30 @@ class Benchmark
 
   def show_tcp_parameters
     parameters = Hash.new
-    parameter_combinations = {"rmem_max" => "net.core.rmem_max", "wmem_max" => "net.core.wmem_max", 
-                  "tcp_rmem" => "net.ipv4.tcp_rmem", "tcp_wmem" => "net.ipv4.tcp_wmem"}
-    parameter_combinations.each {|key, value|
+    combinations = {"rmem_max" => "net.core.rmem_max", "wmem_max" => "net.core.wmem_max", 
+                    "tcp_rmem" => "net.ipv4.tcp_rmem", "tcp_wmem" => "net.ipv4.tcp_wmem"}
+    combinations.each {|key, value|
       result = exec_command([@commands["sysctl"], "-n", value].join(" "))
       result.each{|line|
         parameters[key] = line.strip
         next
       }
     }
-    p parameters
     return parameters
   end
 
   def show_tcp_parameters_remotehost
     parameters = Hash.new
-    parameters["rmem_max"] = exec_command_remotehost([@commands["sysctl"], "-n", "net.core.rmem_max"].join(" "))
-    parameters["wmem_max"] = exec_command_remotehost([@commands["sysctl"], "-n", "net.core.wmem_max"].join(" "))
-    parameters["tcp_rmem"] = exec_command_remotehost([@commands["sysctl"], "-n", "net.ipv4.tcp_rmem"].join(" "))
-    parameters["tcp_wmem"] = exec_command_remotehost([@commands["sysctl"], "-n", "net.ipv4.tcp_wmem"].join(" "))
+    combinations = {"rmem_max" => "net.core.rmem_max", "wmem_max" => "net.core.wmem_max", 
+                    "tcp_rmem" => "net.ipv4.tcp_rmem", "tcp_wmem" => "net.ipv4.tcp_wmem"}
+    combinations.each {|key, value|
+      result = exec_command_remote([@commands["sysctl"], "-n", value].join(" "))
+      result.each{|line|
+        parameters[key] = line.strip
+        next
+      }
+    }
     return parameters
-  end
 end
 
 
