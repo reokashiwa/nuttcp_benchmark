@@ -197,28 +197,32 @@ class Benchmark
     command = [@commands["nuttcp_remote"], "-S"].join(" ")
     return exec_command_remotehost(command)
   end
-  
-end
 
-# def killall_nuttcp_remotehost(commands, remotehost)
-#   command = [commands["killall_remote"], commands["nuttcp_remote"]].join(" ")
-#   return exec_command_remotehost(commands["ssh"], remotehost, command)
-# end
+  def exec(parameters)
+    option_combinations = {
+      "dscp_value" => "-c",
+      "buffer_len" => "-l",
+      "num_bufs" => "-n",
+      "window_size" => "-w",
+      "server_window" => "-ws",
+      "braindead" => "-wb",
+      "data_port" => "-p",
+      "control_port" => "-P",
+      "num_streams" => "-N",
+      "xmit_rate_limit" => "-R",
+      "xmit_timeout" => "-T",
+      "cpu_affinity" => "-x"}
 
-# def start_nuttcpd_remotehost(commands, remotehost)
-#   command = [commands["nuttcp_remote"], "-S"].join(" ")
-#   return exec_command_remotehost(commands["ssh"], remotehost, command)
-# end
-
-def benchmark(commands, remotehost, parameter)
-  command = [commands["nuttcp"], "-xc 7/7 -T" + parameter["xmit_timeout"], remotehost].join(" ")
-  return exec_command(command)
-end
-
-def benchmark_with_window_size(commands, remotehost, parameter)
-  command = [commands["nuttcp"], "-w" + parameter["window_size"], 
-             "-xc 7/7 -T" + parameter["xmit_timeout"], remotehost].join(" ")
-  return exec_command(command)
+    options = String.new
+    option_combinations.each{|key, value|
+      if parameters.has_key?(key)
+        options = options + value + parameters(key) + " "
+      end
+    }
+    
+    command = [commands["nuttcp"], options, remotehost].join(" ")
+    return exec_command(command)
+  end
 end
 
 def set_cpufreq(link, commands, governer)
@@ -384,5 +388,9 @@ p original_tcp_parameters_remotehost
 # p benchmark.show_tcp_parameters
 # p benchmark.show_tcp_parameters_remotehost
 
-# benchmark.start_nuttcpd_remotehost
 benchmark.killall_nuttcpd_remotehost
+benchmark.start_nuttcpd_remotehost
+
+nuttcp_parameter = {"xmit_timeout" => "1"
+}
+p benchmark.exec(nuttcp_parameter)
