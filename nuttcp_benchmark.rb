@@ -111,7 +111,6 @@ class Benchmark
       print "command " + command + " is found in " + which(command) + " in " + @remotehost +"\n"
     }
 
-    p commands
     return commands
   end
 
@@ -353,8 +352,14 @@ mtu_remotehost = benchmark.show_link_mtu_remotehost
 p mtu
 p mtu_remotehost
 
-p benchmark.set_link_mtu(9000)
-p benchmark.set_link_mtu_remote(9000)
+benchmark.set_link_mtu(9000)
+benchmark.set_link_mtu_remotehost(9000)
 
-p benchmark.set_link_mtu(mtu)
-p benchmark.set_link_mtu_remote(mtu_remotehost)
+p benchmark.show_link_mtu
+p benchmark.show_link_mtu_remotehost
+
+benchmark.set_link_mtu(mtu)
+benchmark.set_link_mtu_remotehost(mtu_remotehost)
+
+p benchmark.show_link_mtu
+p benchmark.show_link_mtu_remotehost
