@@ -124,29 +124,20 @@ class Benchmark
     command = [@commands["ip"], "link show", @link_remotehost].join(" ")
     return exec_command_remotehost(command).gets.strip.split(' ')[4]
   end
+
+  def set_link_mtu(mtu)
+    command = [@commands["sudo"], @commands["ip"], "link set", @link, "mtu", mtu].join(" ")
+    return exec_command(command)
+  end
+
+  def set_link_mtu_remotehost(mtu)
+    command = [@commands["sudo"], @commands["ip"], "link set", @link_remotehost, "mtu", mtu].join(" ")
+    return exec_command_remotehost(command)
+  end
   
 end
 
 
-# def show_link_mtu(commands, link)
-#   command = [commands["ip"], "link show", link].join(" ")
-#   link exec_command(command).gets.strip.split(' ')[5]
-# end
-
-# def show_link_mtu_remotehost(commands, link, remotehost)
-#   command = [commands["ip"], "link show", link].join(" ")
-#   return exec_command_remotehost(commands["ssh"], remotehost, command).gets.strip.split(' ')[5]
-# end
-
-def set_link_mtu(commands, link, mtu)
-  command = [commands["sudo"], commands["ip"], "link set", link, "mtu", mtu].join(" ")
-  return exec_command(command)
-end
-
-def set_link_mtu_remotehost(commands, remotehost, link, mtu)
-  command = [commands["sudo"], commands["ip"], "link set", link, "mtu", mtu].join(" ")
-  return exec_command_remotehost(commands["ssh"], remotehost, command)
-end
 
 def show_tcp_parameters(commands)
   parameters = Hash.new
@@ -355,5 +346,15 @@ end
 # killall_nuttcp_remotehost(remotehost)
 
 benchmark = Benchmark.new(conf)
-p benchmark.show_link_mtu
-p benchmark.show_link_mtu_remotehost
+
+mtu = benchmark.show_link_mtu
+mtu_remotehost = benchmark.show_link_mtu_remotehost
+
+p mtu
+p mtu_remotehost
+
+p benchmark.set_link_mtu(9000)
+p benchmark.set_link_mtu_remote(9000)
+
+p benchmark.set_link_mtu(mtu)
+p benchmark.set_link_mtu_remote(mtu_remotehost)
