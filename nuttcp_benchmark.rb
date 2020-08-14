@@ -394,6 +394,7 @@ p original_tcp_parameters_remotehost
 benchmark.killall_nuttcpd_remotehost
 benchmark.start_nuttcpd_remotehost
 
-nuttcp_parameter = {"xmit_timeout" => "1",
-                    "window_size" => "1m"}
+nuttcp_parameter = {"xmit_timeout" => "1"#,
+                    # "window_size" => "1m"
+                   }
 p benchmark.exec(nuttcp_parameter)
