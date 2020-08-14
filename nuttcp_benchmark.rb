@@ -34,7 +34,7 @@ class Benchmark
   end
 
   def exec_command(command)
-    Open3.popen3(command) do |stdin, stdout, stderr, status|
+    Open3.popen3(command.join(" ")) do |stdin, stdout, stderr, status|
       if status.value.to_i == 0
         return stdout.dup
       else
@@ -45,7 +45,7 @@ class Benchmark
   end
 
   def exec_command_remotehost(remotehost_command)
-    command = [which("ssh"), @remotehost, remotehost_command].join(" ")
+    command = [which("ssh"), @remotehost, remotehost_command.join(" ")]
     return exec_command(command)
   end
   
@@ -125,24 +125,24 @@ class Benchmark
   end
 
   def show_link_mtu
-    command = [@commands["ip"], "link show", @link].join(" ")
+    command = [@commands["ip"], "link show", @link]
     return exec_command(command).gets.strip.split(' ')[4]
   end
 
   def show_link_mtu_remotehost
-    command = [@commands["ip"], "link show", @link_remotehost].join(" ")
+    command = [@commands["ip"], "link show", @link_remotehost]
     return exec_command_remotehost(command).gets.strip.split(' ')[4]
   end
 
   def set_link_mtu(mtu)
-    command = [@commands["sudo"], @commands["ip"], "link set", @link, "mtu", mtu].join(" ")
+    command = [@commands["sudo"], @commands["ip"], "link set", @link, "mtu", mtu]
     result = exec_command(command)
     sleep(1)
     return result
   end
 
   def set_link_mtu_remotehost(mtu)
-    command = [@commands["sudo"], @commands["ip"], "link set", @link_remotehost, "mtu", mtu].join(" ")
+    command = [@commands["sudo"], @commands["ip"], "link set", @link_remotehost, "mtu", mtu]
     result = exec_command_remotehost(command)
     sleep(1)
     return result
@@ -151,7 +151,7 @@ class Benchmark
   def show_tcp_parameters
     parameters = Hash.new
     @tcp_parameter_combinations.each {|key, value|
-      result = exec_command([@commands["sysctl"], "-n", value].join(" "))
+      result = exec_command([@commands["sysctl"], "-n", value])
       result.each{|line|
         parameters[key] = line.strip.gsub(/\t/, ' ')
         next
@@ -163,7 +163,7 @@ class Benchmark
   def show_tcp_parameters_remotehost
     parameters = Hash.new
     @tcp_parameter_combinations.each {|key, value|
-      result = exec_command_remotehost([@commands["sysctl"], "-n", value].join(" "))
+      result = exec_command_remotehost([@commands["sysctl"], "-n", value])
       result.each{|line|
         parameters[key] = line.strip.gsub(/\t/, ' ')
         next
@@ -175,7 +175,7 @@ class Benchmark
   def set_tcp_parameters(tcp_parameters)
     @tcp_parameter_combinations.each {|key, value|
       command = [@commands["sudo"], @commands["sysctl"], "-w",
-                 value + "=" + tcp_parameters["rmem_max"]].join(" ")
+                 value + "=" + tcp_parameters["rmem_max"]]
       exec_command(command)
     }
   end
@@ -183,18 +183,18 @@ class Benchmark
   def set_tcp_parameters_remotehost(tcp_parameters)
     @tcp_parameter_combinations.each {|key, value|
       command = [@commands["sudo"], @commands["sysctl"], "-w",
-                 value + "=" + tcp_parameters["rmem_max"]].join(" ")
+                 value + "=" + tcp_parameters["rmem_max"]]
       exec_command_remotehost(command)
     }
   end
 
   def killall_nuttcpd_remotehost
-    command = [@commands["killall_remote"], @commands["nuttcp_remote"]].join(" ")
+    command = [@commands["killall_remote"], @commands["nuttcp_remote"]]
     return exec_command_remotehost(command)
   end
 
   def start_nuttcpd_remotehost
-    command = [@commands["nuttcp_remote"], "-S"].join(" ")
+    command = [@commands["nuttcp_remote"], "-S"]
     return exec_command_remotehost(command)
   end
 
@@ -220,7 +220,7 @@ class Benchmark
       end
     }
     
-    command = [@commands["nuttcp"], options, @remotehost].join(" ")
+    command = [@commands["nuttcp"], options, @remotehost]
     result = exec_command(command)
     result.each{|line|
       return line.strip.split(/\s+/)[6] 
@@ -255,10 +255,10 @@ class Benchmark
             case os
             when "redhat" then
               command = [@commands["sudo"], @commands["cpupower"], "-c", num, "frequency-set",
-                         "-g", governer].join(" ")
+                         "-g", governer]
             else
               command = [@commands["sudo"], @commands["cpufreq-set"], "-c", num, 
-                         "-g", governer].join(" ")
+                         "-g", governer]
             end
             exec_command(command)
             # print "governer of cpu " + num + " changed to " + governer + "\n"
