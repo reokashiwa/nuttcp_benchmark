@@ -226,93 +226,178 @@ class Benchmark
       return line.strip.split(/\s+/)[6] 
     }
   end
-end
 
-def set_cpufreq(link, commands, governer)
-  numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
-  if File.exist?(numa_node_file)
-    File.open(numa_node_file){|file|
-      numa_node = file.gets
-    }
-  else
-    p "numa_node file does not exist."
-    exit(1)
-  end
-
-  exec_command(commands["lscpu"]).each_line do |line|
-    if line.include?("NUMA node" + numa_node)
-      numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
-      break
+  def set_cpufreq(governer)
+    numa_node_file = "/sys/class/net/" + @link + "/device/numa_node"
+    if File.exist?(numa_node_file)
+      File.open(numa_node_file){|file|
+        numa_node = file.gets
+      }
+    else
+      p "numa_node file does not exist."
+      exit(1)
     end
-  end
 
-  if numa_cpus_range != nil
-    numa_cpus_range.each_line do |line|
-      if line.include?("-")
-        for num in line.split("-")[0]..line.split("-")[1]
-          case detect_os
-          when "redhat" then
-            command = [commands["sudo"], commands["cpupower"], "-c", num, "frequency-set",
-                       "-g", governer]
-          else
-            command = [commands["sudo"], commands["cpufreq_set"], "-c", num, 
-                       "-g", governer]
-          end
-          exec_command(command)
-        end
-      else
-        # if line does not include "-" == only number
-        # (to implement)
+    exec_command(commands["lscpu"]).each_line do |line|
+      if line.include?("NUMA node" + numa_node)
+        numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+        break
       end
     end
-  else
-    p "numa_cpu can not be found."
-    exit(1)
-  end
-end
 
-def set_cpufreq_remote(commands, remotehost, link, governer)
-  numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
-
-  ssh = commands["ssh"]
-  if remote_file_exist?(ssh, remotehost, numa_node_file)
-    numa_node = exec_command_remotehost(ssh, remotehost, ["/bin/cat", numa_node_file].join(" "))
-  else
-    p "numa_node file does not exist."
-    exit(1)
-  end
-
-  exec_command_remotehost(ssh, remotehost, commands["lscpu_remote"]).each_line do |line|
-    if line.include?("NUMA node" + numa_node)
-      numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
-      break
+    if numa_cpus_range != nil
+      numa_cpus_range.each_line do |line|
+        if line.include?("-")
+          for num in line.split("-")[0]..line.split("-")[1]
+            case detect_os
+            when "redhat" then
+              command = [@commands["sudo"], @commands["cpupower"], "-c", num, "frequency-set",
+                         "-g", governer]
+            else
+              command = [@commands["sudo"], @commands["cpufreq_set"], "-c", num, 
+                         "-g", governer]
+            end
+            exec_command(command)
+          end
+        else
+          # if line does not include "-" == only number
+          # (to implement)
+        end
+      end
+    else
+      p "numa_cpu can not be found."
+      exit(1)
     end
   end
 
-  if numa_cpus_range != nil
-    numa_cpus_range.each_line do |line|
-      if line.include?("-")
-        for num in line.split("-")[0]..line.split("-")[1]
-          case detect_os
-          when "redhat" then
-            command = [commands["sudo_remote"], commands["cpupower_remote"], "-c", num,
-                       "frequency-set_remote", "-g", governer]
-          else
-            command = [commands["sudo_remote"], commands["cpufreq_set_remote"], "-c", num, 
-                       "-g", governer]
-          end
-          exec_command_remote(ssh, remotehost, command)
-        end
-      else
-        # if line does not include "-" == only number
-        # (to implement)
+  def set_cpufreq_remote(commands, remotehost, link, governer)
+    numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
+
+    if remote_file_exist?(numa_node_file)
+      numa_node = exec_command_remotehost("/bin/cat " + numa_node_file)
+    else
+      p "numa_node file does not exist."
+      exit(1)
+    end
+
+    exec_command_remotehost(@commands["lscpu_remote"]).each_line do |line|
+      if line.include?("NUMA node" + numa_node)
+        numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+        break
       end
     end
-  else
-    p "numa_cpu can not be found."
-    exit(1)
+
+    if numa_cpus_range != nil
+      numa_cpus_range.each_line do |line|
+        if line.include?("-")
+          for num in line.split("-")[0]..line.split("-")[1]
+            case detect_os
+            when "redhat" then
+              command = [@commands["sudo_remote"], @commands["cpupower_remote"], "-c", num,
+                         "frequency-set_remote", "-g", governer]
+            else
+              command = [@commands["sudo_remote"], @commands["cpufreq_set_remote"], "-c", num, 
+                         "-g", governer]
+            end
+            exec_command_remote(command)
+          end
+        else
+          # if line does not include "-" == only number
+          # (to implement)
+        end
+      end
+    else
+      p "numa_cpu can not be found."
+      exit(1)
+    end
   end
 end
+
+# def set_cpufreq(link, commands, governer)
+#   numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
+#   if File.exist?(numa_node_file)
+#     File.open(numa_node_file){|file|
+#       numa_node = file.gets
+#     }
+#   else
+#     p "numa_node file does not exist."
+#     exit(1)
+#   end
+
+#   exec_command(commands["lscpu"]).each_line do |line|
+#     if line.include?("NUMA node" + numa_node)
+#       numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+#       break
+#     end
+#   end
+
+#   if numa_cpus_range != nil
+#     numa_cpus_range.each_line do |line|
+#       if line.include?("-")
+#         for num in line.split("-")[0]..line.split("-")[1]
+#           case detect_os
+#           when "redhat" then
+#             command = [commands["sudo"], commands["cpupower"], "-c", num, "frequency-set",
+#                        "-g", governer]
+#           else
+#             command = [commands["sudo"], commands["cpufreq_set"], "-c", num, 
+#                        "-g", governer]
+#           end
+#           exec_command(command)
+#         end
+#       else
+#         # if line does not include "-" == only number
+#         # (to implement)
+#       end
+#     end
+#   else
+#     p "numa_cpu can not be found."
+#     exit(1)
+#   end
+# end
+
+# def set_cpufreq_remote(commands, remotehost, link, governer)
+#   numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
+
+#   ssh = commands["ssh"]
+#   if remote_file_exist?(ssh, remotehost, numa_node_file)
+#     numa_node = exec_command_remotehost(ssh, remotehost, ["/bin/cat", numa_node_file].join(" "))
+#   else
+#     p "numa_node file does not exist."
+#     exit(1)
+#   end
+
+#   exec_command_remotehost(ssh, remotehost, commands["lscpu_remote"]).each_line do |line|
+#     if line.include?("NUMA node" + numa_node)
+#       numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+#       break
+#     end
+#   end
+
+#   if numa_cpus_range != nil
+#     numa_cpus_range.each_line do |line|
+#       if line.include?("-")
+#         for num in line.split("-")[0]..line.split("-")[1]
+#           case detect_os
+#           when "redhat" then
+#             command = [commands["sudo_remote"], commands["cpupower_remote"], "-c", num,
+#                        "frequency-set_remote", "-g", governer]
+#           else
+#             command = [commands["sudo_remote"], commands["cpufreq_set_remote"], "-c", num, 
+#                        "-g", governer]
+#           end
+#           exec_command_remote(ssh, remotehost, command)
+#         end
+#       else
+#         # if line does not include "-" == only number
+#         # (to implement)
+#       end
+#     end
+#   else
+#     p "numa_cpu can not be found."
+#     exit(1)
+#   end
+# end
 
 # conf["target_mtu"].each{|mtu|
 #   # NORMAL
@@ -398,3 +483,5 @@ nuttcp_parameter = {"xmit_timeout" => "1"#,
                     # "window_size" => "1m"
                    }
 p benchmark.exec(nuttcp_parameter)
+benchmark.set_cpufreq("performance")
+benchmark.set_cpufreq("powersave")
