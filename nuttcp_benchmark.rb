@@ -234,7 +234,6 @@ class Benchmark
     if File.exist?(numa_node_file)
       File.open(numa_node_file){|file|
         numa_node = file.gets.strip
-        p numa_node
       }
     else
       p "numa_node file does not exist."
@@ -243,26 +242,26 @@ class Benchmark
 
     exec_command(@commands["lscpu"]).each_line do |line|
       if line.include?("NUMA node" + numa_node)
-        p line
-        numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
-        p numa_cpus_range
+        numa_cpus_range = line.split(/\s+/)[3]
         break
       end
     end
 
     if numa_cpus_range != nil
-      numa_cpus_range.each_line do |line|
-        if line.include?("-")
-          for num in line.split("-")[0]..line.split("-")[1]
-            case detect_os
+      os = detect_os
+      numa_cpus_range.split(',').each do |range|
+        if range.include?("-")
+          for num in range.split("-")[0]..range.split("-")[1]
+            case os
             when "redhat" then
               command = [@commands["sudo"], @commands["cpupower"], "-c", num, "frequency-set",
-                         "-g", governer]
+                         "-g", governer].join(" ")
             else
-              command = [@commands["sudo"], @commands["cpufreq_set"], "-c", num, 
-                         "-g", governer]
+              command = [@commands["sudo"], @commands["cpufreq-set"], "-c", num, 
+                         "-g", governer].join(" ")
             end
             exec_command(command)
+            # print "governer of cpu " + num + " changed to " + governer + "\n"
           end
         else
           # if line does not include "-" == only number
@@ -462,11 +461,11 @@ p mtu_remotehost
 # p benchmark.show_link_mtu
 # p benchmark.show_link_mtu_remotehost
 
-original_tcp_parameters = benchmark.show_tcp_parameters
-original_tcp_parameters_remotehost = benchmark.show_tcp_parameters_remotehost
+#original_tcp_parameters = benchmark.show_tcp_parameters
+#original_tcp_parameters_remotehost = benchmark.show_tcp_parameters_remotehost
 
-p original_tcp_parameters
-p original_tcp_parameters_remotehost
+#p original_tcp_parameters
+#p original_tcp_parameters_remotehost
 
 # sample_parameters = {"rmem_max" => "425984", 
 #                      "wmem_max" => "425984", 
@@ -491,8 +490,8 @@ benchmark.start_nuttcpd_remotehost
 nuttcp_parameter = {"xmit_timeout" => "1"#,
                     # "window_size" => "1m"
                    }
-p benchmark.exec(nuttcp_parameter)
+#p benchmark.exec(nuttcp_parameter)
 benchmark.set_cpufreq("performance")
 benchmark.set_cpufreq("powersave")
-benchmark.set_cpufreq_remotehost("performance")
-benchmark.set_cpufreq_remotehost("powersave")
+#benchmark.set_cpufreq_remotehost("performance")
+#benchmark.set_cpufreq_remotehost("powersave")
