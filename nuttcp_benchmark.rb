@@ -244,6 +244,7 @@ class Benchmark
     exec_command(@commands["lscpu"]).each_line do |line|
       if line.include?("NUMA node" + numa_node)
         numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+        p numa_cpus_range
         break
       end
     end
@@ -273,11 +274,14 @@ class Benchmark
     end
   end
 
-  def set_cpufreq_remote(governer)
-    numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
+  def set_cpufreq_remotehost(governer)
+    numa_mode = String.new
+    numa_cpus_range = String.new
+    numa_node_file = "/sys/class/net/" + @link_remotehost + "/device/numa_node"
 
     if remote_file_exist?(numa_node_file)
       numa_node = exec_command_remotehost("/bin/cat " + numa_node_file).gets
+      p numa_node
     else
       p "numa_node file does not exist."
       exit(1)
@@ -286,6 +290,7 @@ class Benchmark
     exec_command_remotehost(@commands["lscpu_remote"]).each_line do |line|
       if line.include?("NUMA node" + numa_node)
         numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+        p numa_cpus_range
         break
       end
     end
@@ -488,3 +493,5 @@ nuttcp_parameter = {"xmit_timeout" => "1"#,
 p benchmark.exec(nuttcp_parameter)
 benchmark.set_cpufreq("performance")
 benchmark.set_cpufreq("powersave")
+benchmark.set_cpufreq_remotehost("performance")
+benchmark.set_cpufreq_remotehost("powersave")
