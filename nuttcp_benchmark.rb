@@ -240,7 +240,7 @@ class Benchmark
       exit(1)
     end
 
-    exec_command(@commands["lscpu"]).each_line do |line|
+    exec_command([@commands["lscpu"]]).each_line do |line|
       if line.include?("NUMA node" + numa_node)
         numa_cpus_range = line.split(/\s+/)[3]
         break
@@ -280,14 +280,14 @@ class Benchmark
     numa_node_file = "/sys/class/net/" + @link_remotehost + "/device/numa_node"
 
     if remote_file_exist?(numa_node_file)
-      numa_node = exec_command_remotehost("/bin/cat " + numa_node_file).gets
+      numa_node = exec_command_remotehost(["/bin/cat", numa_node_file]).gets
       p numa_node
     else
       p "numa_node file does not exist."
       exit(1)
     end
 
-    exec_command_remotehost(@commands["lscpu_remote"]).each_line do |line|
+    exec_command_remotehost([@commands["lscpu_remote"]]).each_line do |line|
       if line.include?("NUMA node" + numa_node)
         numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
         p numa_cpus_range
