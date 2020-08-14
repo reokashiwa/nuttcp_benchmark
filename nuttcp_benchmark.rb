@@ -243,6 +243,7 @@ class Benchmark
 
     exec_command(@commands["lscpu"]).each_line do |line|
       if line.include?("NUMA node" + numa_node)
+        p line
         numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
         p numa_cpus_range
         break
