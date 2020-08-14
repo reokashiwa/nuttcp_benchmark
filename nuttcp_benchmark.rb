@@ -234,6 +234,7 @@ class Benchmark
     if File.exist?(numa_node_file)
       File.open(numa_node_file){|file|
         numa_node = file.gets
+        p "numa_node"
         p numa_node
       }
     else
@@ -244,6 +245,7 @@ class Benchmark
     exec_command(@commands["lscpu"]).each_line do |line|
       if line.include?("NUMA node" + numa_node)
         numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
+        p "numa_cpus_range"
         p numa_cpus_range
         break
       end
