@@ -50,7 +50,7 @@ class Benchmark
   end
   
   def remote_file_exist?(filename)
-    result = exec_command_remotehost('"[ -e ' + filename + ' ];echo \$?"')
+    result = exec_command_remotehost(['"[ -e ' + filename + ' ];echo \$?"'])
     result.each do |line|
       if line.strip == "1"
         return false
