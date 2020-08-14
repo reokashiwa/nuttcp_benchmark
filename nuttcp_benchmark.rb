@@ -228,17 +228,20 @@ class Benchmark
   end
 
   def set_cpufreq(governer)
+    numa_node = String.new
+    numa_cpus_range = String.new
     numa_node_file = "/sys/class/net/" + @link + "/device/numa_node"
     if File.exist?(numa_node_file)
       File.open(numa_node_file){|file|
         numa_node = file.gets
+        p numa_node
       }
     else
       p "numa_node file does not exist."
       exit(1)
     end
 
-    exec_command(commands["lscpu"]).each_line do |line|
+    exec_command(@commands["lscpu"]).each_line do |line|
       if line.include?("NUMA node" + numa_node)
         numa_cpus_range = line.split(' ')[4].gsub(',', "\n")
         break
@@ -270,11 +273,11 @@ class Benchmark
     end
   end
 
-  def set_cpufreq_remote(commands, remotehost, link, governer)
+  def set_cpufreq_remote(governer)
     numa_node_file = "/sys/class/net/" + link + "/device/numa_node"
 
     if remote_file_exist?(numa_node_file)
-      numa_node = exec_command_remotehost("/bin/cat " + numa_node_file)
+      numa_node = exec_command_remotehost("/bin/cat " + numa_node_file).gets
     else
       p "numa_node file does not exist."
       exit(1)
